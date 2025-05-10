@@ -1,15 +1,14 @@
 #!/usr/bin/env python
-from setuptools import setup, find_packages
-from codecs import open
 import glob
-import sys
 import os
+from codecs import open
 
+from setuptools import find_packages, setup
 
 data_files = []
 directories = glob.glob('async_tls_client/dependencies/')
 for directory in directories:
-    files = glob.glob(directory+'*')
+    files = glob.glob(directory + '*')
     data_files.append(('async_tls_client/dependencies', files))
 
 about = {}
@@ -28,11 +27,13 @@ setup(
     license=about["__license__"],
     long_description=readme,
     long_description_content_type="text/markdown",
+    url="https://github.com/diprog/python-tls-client-async",
     packages=find_packages(),
     include_package_data=True,
     package_data={
         '': ['*'],
     },
+    python_requires=">=3.9",
     classifiers=[
         "Environment :: Web Environment",
         "Intended Audience :: Developers",
@@ -42,8 +43,6 @@ setup(
         "Operating System :: Microsoft :: Windows",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
@@ -52,7 +51,11 @@ setup(
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Software Development :: Libraries",
     ],
+    install_requires=["typing-extensions"],
     project_urls={
+        "Original Project": "https://github.com/FlorianREGAZ/Python-Tls-Client",
+        "Original PyPI": "https://pypi.org/project/tls-client/",
         "Source": "https://github.com/diprog/python-tls-client-async",
-    }
+    },
+    keywords=["tls", "asyncio", "http-client", "ja3", "fingerprinting"],
 )

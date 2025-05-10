@@ -1,5 +1,10 @@
 # Python-TLS-Client-Async
 
+[![PyPI version](https://img.shields.io/pypi/v/async_tls_client.svg)](https://pypi.org/project/async_tls_client/)
+
+> Asyncio fork of [Florian Zager's Python-TLS-Client](https://github.com/FlorianREGAZ/Python-Tls-Client) 
+> with updated dependencies and modern Python support.
+
 Python-TLS-Client-Async is a fork of [Python-TLS-Client](https://github.com/FlorianREGAZ/Python-Tls-Client) with added
 support for asyncio. This library allows you to perform advanced HTTP requests while maintaining compatibility with
 asynchronous programming patterns in Python.
