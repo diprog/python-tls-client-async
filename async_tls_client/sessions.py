@@ -237,14 +237,7 @@ class AsyncSession:
         """
         self._session_id = str(uuid.uuid4())
         # Standard Settings
-        self.headers = CaseInsensitiveDict(
-            {
-                "User-Agent": f"tls-client/{__version__}",
-                "Accept-Encoding": "gzip, deflate, br",
-                "Accept": "*/*",
-                "Connection": "keep-alive",
-            }
-        )
+        self.headers = CaseInsensitiveDict()
         self.proxies = {}
         self.params = {}
         self.cookies = cookiejar_from_dict({})
