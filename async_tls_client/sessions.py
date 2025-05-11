@@ -427,6 +427,7 @@ class AsyncSession:
                 "headerOrder": self.header_order,
                 "insecureSkipVerify": insecure_skip_verify,
                 "isByteRequest": is_byte_request,
+                "isByteResponse": True,
                 "additionalDecode": self.additional_decode,
                 "proxyUrl": final_proxy,
                 "requestUrl": final_url,
