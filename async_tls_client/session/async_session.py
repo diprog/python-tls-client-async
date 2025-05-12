@@ -4,14 +4,16 @@ import ctypes
 import urllib.parse
 import uuid
 from json import dumps, loads
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 from async_tls_client.cffi import destroySession, freeMemory, request
 from async_tls_client.cookies import cookiejar_from_dict, extract_cookies_to_jar, merge_cookies
 from async_tls_client.exceptions import TLSClientException
 from async_tls_client.response import Response, build_response
-from async_tls_client.types import ClientIdentifiers
 from async_tls_client.structures import CaseInsensitiveDict
+from async_tls_client.types import ClientIdentifiers, Curves, DelegatedSignatureAlgorithms, H2Settings, \
+    SignatureAlgorithms, \
+    TLSVersions
 
 
 class AsyncSession:
@@ -41,198 +43,211 @@ class AsyncSession:
 
     def __init__(
             self,
-            client_identifier: ClientIdentifiers = "chrome_120",
+            client_identifier: ClientIdentifiers = "chrome_133",
             ja3_string: Optional[str] = None,
-            h2_settings: Optional[Dict[str, int]] = None,
-            h2_settings_order: Optional[List[str]] = None,
-            supported_signature_algorithms: Optional[List[str]] = None,
-            supported_delegated_credentials_algorithms: Optional[List[str]] = None,
-            supported_versions: Optional[List[str]] = None,
-            key_share_curves: Optional[List[str]] = None,
+            h2_settings: Optional[dict[H2Settings, int]] = None,
+            h2_settings_order: Optional[list[str]] = None,
+            supported_signature_algorithms: Optional[list[SignatureAlgorithms]] = None,
+            supported_delegated_credentials_algorithms: Optional[list[DelegatedSignatureAlgorithms]] = None,
+            supported_versions: Optional[list[TLSVersions]] = None,
+            key_share_curves: Optional[list[Curves]] = None,
             cert_compression_algo: str = None,
             additional_decode: str = None,
-            pseudo_header_order: Optional[List[str]] = None,
+            pseudo_header_order: Optional[list[str]] = None,
             connection_flow: Optional[int] = None,
             priority_frames: Optional[list] = None,
-            header_order: Optional[List[str]] = None,
-            header_priority: Optional[List[str]] = None,
+            header_order: Optional[list[str]] = None,
+            header_priority: Optional[list[str]] = None,
             random_tls_extension_order: Optional[bool] = False,
             force_http1: Optional[bool] = False,
             catch_panics: Optional[bool] = False,
             debug: Optional[bool] = False,
-            certificate_pinning: Optional[Dict[str, List[str]]] = None,
+            certificate_pinning: Optional[dict[str, list[str]]] = None,
     ) -> None:
         """
         Initializes the AsyncSession with various HTTP and TLS parameters.
 
-        Google style docstring format:
+        :param client_identifier: Identifies the client configuration to use.
+            Possible values: "chrome_103", "firefox_102", "opera_89" etc.
+            Default: "chrome_133"
 
-        Args:
-            client_identifier (ClientIdentifiers):
-                Identifies the client. For example, "chrome_103", "firefox_102", "opera_89", etc.
-                For all possible client identifiers, check the settings.py file. Defaults to "chrome_120".
+        :param ja3_string: JA3 string specifying TLS fingerprint details including:
+            - TLSVersion
+            - Ciphers
+            - Extensions
+            - EllipticCurves
+            - EllipticCurvePointFormats
+            Example:
 
-            ja3_string (Optional[str]):
-                A JA3 string specifying TLS fingerprint details such as
-                TLSVersion, Ciphers, Extensions, EllipticCurves, EllipticCurvePointFormats.
-                Example:
-                    771,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,
-                    0-23-65281-10-11-35-16-5-13-18-51-45-43-27-17513,29-23-24,0
+            .. code-block:: python
 
-            h2_settings (Optional[Dict[str, int]]):
-                A dictionary representing HTTP/2 header frame settings.
-                Possible keys: HEADER_TABLE_SIZE, SETTINGS_ENABLE_PUSH, MAX_CONCURRENT_STREAMS,
-                INITIAL_WINDOW_SIZE, MAX_FRAME_SIZE, MAX_HEADER_LIST_SIZE.
-                Example:
+                "771,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-13-18-51-45-43-27-17513,29-23-24,0"
+
+        :param h2_settings: Dictionary representing HTTP/2 header frame settings.
+            Possible keys:
+            - HEADER_TABLE_SIZE
+            - ENABLE_PUSH
+            - MAX_CONCURRENT_STREAMS
+            - INITIAL_WINDOW_SIZE
+            - MAX_FRAME_SIZE
+            - MAX_HEADER_LIST_SIZE
+            Example:
+
+            .. code-block:: python
+
+                {
+                    "HEADER_TABLE_SIZE": 65536,
+                    "MAX_CONCURRENT_STREAMS": 1000,
+                    "INITIAL_WINDOW_SIZE": 6291456,
+                    "MAX_HEADER_LIST_SIZE": 262144
+                }
+
+        :param h2_settings_order: List specifying the order of HTTP/2 settings.
+            Example:
+
+            .. code-block:: python
+
+                [
+                    "HEADER_TABLE_SIZE",
+                    "MAX_CONCURRENT_STREAMS",
+                    "INITIAL_WINDOW_SIZE",
+                    "MAX_HEADER_LIST_SIZE"
+                ]
+
+        :param supported_signature_algorithms: List of supported signature algorithms.
+            Possible values:
+            - PKCS1WithSHA256
+            - PKCS1WithSHA384
+            - PKCS1WithSHA512
+            - PSSWithSHA256
+            - PSSWithSHA384
+            - PSSWithSHA512
+            - ECDSAWithP256AndSHA256
+            - ECDSAWithP384AndSHA384
+            - ECDSAWithP521AndSHA512
+            - PKCS1WithSHA1
+            - ECDSAWithSHA1
+            Example:
+
+            .. code-block:: python
+
+                [
+                    "ECDSAWithP256AndSHA256",
+                    "PSSWithSHA256",
+                    "PKCS1WithSHA256",
+                    "ECDSAWithP384AndSHA384",
+                    "PSSWithSHA384",
+                    "PKCS1WithSHA384",
+                    "PSSWithSHA512",
+                    "PKCS1WithSHA512",
+                ]
+
+        :param supported_delegated_credentials_algorithms: List of supported delegated credentials algorithms.
+            Same possible values as supported_signature_algorithms.
+
+        :param supported_versions: List of supported TLS versions.
+            Possible values: "GREASE", "1.3", "1.2", "1.1", "1.0"
+            Example:
+
+            .. code-block:: python
+
+                ["GREASE", "1.3", "1.2"]
+
+        :param key_share_curves: List of key share curves.
+            Possible values: "GREASE", "P256", "P384", "P521", "X25519", "P256Kyber768", "X25519Kyber512D",
+            "X25519Kyber768", "X25519Kyber768Old", "X25519MLKEM768"
+            Example:
+
+            .. code-block:: python
+
+                ["GREASE", "X25519"]
+
+        :param cert_compression_algo: Certificate compression algorithm.
+            Examples: "zlib", "brotli", "zstd"
+
+        :param additional_decode: Explicit response decoding algorithm.
+            Examples: "gzip", "br", "deflate"
+
+        :param pseudo_header_order: List specifying pseudo-header order.
+            Possible values: ":authority", ":method", ":path", ":scheme"
+            Example:
+
+            .. code-block:: python
+
+                [
+                    ":method",
+                    ":authority",
+                    ":scheme",
+                    ":path"
+                ]
+
+        :param connection_flow: Connection flow/window size increment.
+            Example: 15663105
+
+        :param priority_frames: List specifying HTTP/2 priority frames.
+            Example:
+
+            .. code-block:: python
+
+                [
                     {
-                        "HEADER_TABLE_SIZE": 65536,
-                        "MAX_CONCURRENT_STREAMS": 1000,
-                        "INITIAL_WINDOW_SIZE": 6291456,
-                        "MAX_HEADER_LIST_SIZE": 262144
-                    }
-
-            h2_settings_order (Optional[List[str]]):
-                A list specifying the order of HTTP/2 settings.
-                Example:
-                    [
-                        "HEADER_TABLE_SIZE",
-                        "MAX_CONCURRENT_STREAMS",
-                        "INITIAL_WINDOW_SIZE",
-                        "MAX_HEADER_LIST_SIZE"
-                    ]
-
-            supported_signature_algorithms (Optional[List[str]]):
-                A list of supported signature algorithms.
-                Possible values:
-                    PKCS1WithSHA256, PKCS1WithSHA384, PKCS1WithSHA512, PSSWithSHA256, PSSWithSHA384,
-                    PSSWithSHA512, ECDSAWithP256AndSHA256, ECDSAWithP384AndSHA384, ECDSAWithP521AndSHA512,
-                    PKCS1WithSHA1, ECDSAWithSHA1
-                Example:
-                    [
-                        "ECDSAWithP256AndSHA256",
-                        "PSSWithSHA256",
-                        "PKCS1WithSHA256",
-                        "ECDSAWithP384AndSHA384",
-                        "PSSWithSHA384",
-                        "PKCS1WithSHA384",
-                        "PSSWithSHA512",
-                        "PKCS1WithSHA512",
-                    ]
-
-            supported_delegated_credentials_algorithms (Optional[List[str]]):
-                A list of supported delegated credentials algorithms.
-                Possible values:
-                    PKCS1WithSHA256, PKCS1WithSHA384, PKCS1WithSHA512, PSSWithSHA256, PSSWithSHA384,
-                    PSSWithSHA512, ECDSAWithP256AndSHA256, ECDSAWithP384AndSHA384, ECDSAWithP521AndSHA512,
-                    PKCS1WithSHA1, ECDSAWithSHA1
-                Example:
-                    [
-                        "ECDSAWithP256AndSHA256",
-                        "PSSWithSHA256",
-                        "PKCS1WithSHA256",
-                        "ECDSAWithP384AndSHA384",
-                        "PSSWithSHA384",
-                        "PKCS1WithSHA384",
-                        "PSSWithSHA512",
-                        "PKCS1WithSHA512",
-                    ]
-
-            supported_versions (Optional[List[str]]):
-                A list of supported TLS versions. Possible values include:
-                GREASE, 1.3, 1.2, 1.1, 1.0
-                Example:
-                    [
-                        "GREASE",
-                        "1.3",
-                        "1.2"
-                    ]
-
-            key_share_curves (Optional[List[str]]):
-                A list of key share curves. Possible values:
-                GREASE, P256, P384, P521, X25519
-                Example:
-                    [
-                        "GREASE",
-                        "X25519"
-                    ]
-
-            cert_compression_algo (str):
-                Certificate compression algorithm. Examples include: "zlib", "brotli", "zstd".
-
-            additional_decode (str):
-                Make sure the Go code decodes the response body once explicitly by the provided algorithm.
-                Examples include: "gzip", "br", "deflate", or None.
-
-            pseudo_header_order (Optional[List[str]]):
-                A list specifying the pseudo-header order (:authority, :method, :path, :scheme).
-                Example:
-                    [
-                        ":method",
-                        ":authority",
-                        ":scheme",
-                        ":path"
-                    ]
-
-            connection_flow (Optional[int]):
-                Connection flow or window size increment. Example:
-                    15663105
-
-            priority_frames (Optional[list]):
-                A list specifying HTTP/2 priority frames.
-                Example:
-                    [
-                      {
                         "streamID": 3,
                         "priorityParam": {
-                          "weight": 201,
-                          "streamDep": 0,
-                          "exclusive": false
+                            "weight": 201,
+                            "streamDep": 0,
+                            "exclusive": false
                         }
-                      },
-                      {
+                    },
+                    {
                         "streamID": 5,
                         "priorityParam": {
-                          "weight": 101,
-                          "streamDep": false,
-                          "exclusive": 0
+                            "weight": 101,
+                            "streamDep": false,
+                            "exclusive": 0
                         }
-                      }
-                    ]
-
-            header_order (Optional[List[str]]):
-                A list specifying the order of your headers.
-                Example:
-                    [
-                        "key1",
-                        "key2"
-                    ]
-
-            header_priority (Optional[List[str]]):
-                A list or dictionary specifying header priority.
-                Example:
-                    {
-                        "streamDep": 1,
-                        "exclusive": true,
-                        "weight": 1
                     }
+                ]
 
-            random_tls_extension_order (Optional[bool]):
-                Whether to randomize the TLS extension order.
+        :param header_order: List specifying header order.
+            Example:
 
-            force_http1 (Optional[bool]):
-                Whether to force HTTP/1 usage instead of HTTP/2 or higher.
+            .. code-block:: python
 
-            catch_panics (Optional[bool]):
-                Whether to avoid the TLS client printing the whole stacktrace when a panic (critical Go error) happens.
+                ["key1", "key2"]
 
-            debug (Optional[bool]):
-                Enables debug mode, which may provide additional output.
+        :param header_priority: Dictionary specifying header priority.
+            Example:
 
-            certificate_pinning (Optional[Dict[str, List[str]]]):
-                Dictionary specifying certificate pinning. Useful for verifying certain hosts with pinned certificates.
+            .. code-block:: python
 
-        Returns:
-            None
+                {
+                    "streamDep": 1,
+                    "exclusive": true,
+                    "weight": 1
+                }
+
+        :param random_tls_extension_order: Whether to randomize TLS extension order.
+            Default: False
+
+        :param force_http1: Whether to force HTTP/1 usage.
+            Default: False
+
+        :param catch_panics: Whether to catch Go panics.
+            Default: False
+
+        :param debug: Enable debug mode.
+            Default: False
+
+        :param certificate_pinning: Dictionary for certificate pinning.
+            Example:
+
+            .. code-block:: python
+
+                {
+                    "example.com": [
+                        "sha256/AAAAAAAAAAAAAAAAAAAAAA=="
+                    ]
+                }
         """
         self._session_id = str(uuid.uuid4())
         # Standard Settings
@@ -268,15 +283,13 @@ class AsyncSession:
         """
         Enters the session in an asynchronous context manager.
 
-        Returns:
-            AsyncSession: The current session instance.
+        :return: Current session instance
         """
         return self
 
     async def __aexit__(self, *args):
         """
         Exits the session in an asynchronous context manager.
-
         Frees resources by calling the `close()` method asynchronously.
         """
         await self.close()
@@ -285,8 +298,7 @@ class AsyncSession:
         """
         Closes the session and frees allocated Go memory resources.
 
-        Returns:
-            str: The JSON response string from the destroy session call.
+        :return: JSON response string from the destroy session call
         """
         destroy_session_payload = {
             "sessionId": self._session_id
@@ -322,40 +334,28 @@ class AsyncSession:
         """
         Executes an HTTP request using the Go-based TLS client in a separate thread.
 
-        Args:
-            method (str):
-                The HTTP method (GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD).
-            url (str):
-                The request URL.
-            params (Optional[dict]):
-                Querystring parameters to be appended to the URL.
-                If values are lists, they represent multiple values for the same key.
-            data (Optional[Union[str, dict]]):
-                The request body for form data or raw string/bytes. Priority is given to `data` over `json`.
-            headers (Optional[dict]):
-                Additional headers to merge with the session's default headers.
-            cookies (Optional[dict]):
-                Cookies to merge with the session's cookies.
-            json (Optional[dict]):
-                JSON body if `data` is not provided. If it's a dict or list, it will be JSON-encoded automatically.
-            allow_redirects (Optional[bool]):
-                Whether to follow redirects. Defaults to False.
-            insecure_skip_verify (Optional[bool]):
-                Whether to skip TLS certificate verification. Defaults to False.
-            timeout_seconds (Optional[int]):
-                Request timeout in seconds. Defaults to session's `timeout_seconds`.
-            proxy (Optional[dict]):
-                Proxy settings as a dict. For example:
+        :param method: HTTP method (GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD)
+        :param url: Request URL
+        :param params: Querystring parameters
+        :param data: Request body (form data or raw bytes)
+        :param headers: Additional headers
+        :param cookies: Additional cookies
+        :param json: JSON body (alternative to data)
+        :param allow_redirects: Follow redirects
+        :param insecure_skip_verify: Skip TLS verification
+        :param timeout_seconds: Request timeout
+        :param proxy: Proxy configuration
+            Example:
+
+            .. code-block:: python
+
                 {
                     "http": "http://user:pass@ip:port",
                     "https": "http://user:pass@ip:port"
                 }
 
-        Returns:
-            Response: The response object.
-
-        Raises:
-            TLSClientExeption: If the underlying Go client returns a status code of 0 (error).
+        :return: Response object
+        :raises TLSClientException: If Go client returns status code 0 (error)
         """
 
         def build_payload():
@@ -489,14 +489,9 @@ class AsyncSession:
         """
         Sends an asynchronous GET request.
 
-        Args:
-            url (str):
-                The request URL.
-            **kwargs (Any):
-                Additional arguments to be passed to `execute_request`.
-
-        Returns:
-            Response: The response object.
+        :param url: Request URL
+        :param kwargs: Additional arguments for execute_request
+        :return: Response object
         """
         return await self.execute_request(method="GET", url=url, **kwargs)
 
@@ -504,14 +499,9 @@ class AsyncSession:
         """
         Sends an asynchronous OPTIONS request.
 
-        Args:
-            url (str):
-                The request URL.
-            **kwargs (Any):
-                Additional arguments to be passed to `execute_request`.
-
-        Returns:
-            Response: The response object.
+        :param url: Request URL
+        :param kwargs: Additional arguments for execute_request
+        :return: Response object
         """
         return await self.execute_request(method="OPTIONS", url=url, **kwargs)
 
@@ -519,14 +509,9 @@ class AsyncSession:
         """
         Sends an asynchronous HEAD request.
 
-        Args:
-            url (str):
-                The request URL.
-            **kwargs (Any):
-                Additional arguments to be passed to `execute_request`.
-
-        Returns:
-            Response: The response object.
+        :param url: Request URL
+        :param kwargs: Additional arguments for execute_request
+        :return: Response object
         """
         return await self.execute_request(method="HEAD", url=url, **kwargs)
 
@@ -540,18 +525,11 @@ class AsyncSession:
         """
         Sends an asynchronous POST request.
 
-        Args:
-            url (str):
-                The request URL.
-            data (Optional[Union[str, dict]]):
-                The request body for form data or raw string/bytes. Priority is given to `data` over `json`.
-            json (Optional[dict]):
-                JSON body if `data` is not provided. If it's a dict or list, it will be JSON-encoded automatically.
-            **kwargs (Any):
-                Additional arguments to be passed to `execute_request`.
-
-        Returns:
-            Response: The response object.
+        :param url: Request URL
+        :param data: Request body (form data or raw bytes)
+        :param json: JSON body (alternative to data)
+        :param kwargs: Additional arguments for execute_request
+        :return: Response object
         """
         return await self.execute_request(method="POST", url=url, data=data, json=json, **kwargs)
 
@@ -565,18 +543,11 @@ class AsyncSession:
         """
         Sends an asynchronous PUT request.
 
-        Args:
-            url (str):
-                The request URL.
-            data (Optional[Union[str, dict]]):
-                The request body for form data or raw string/bytes. Priority is given to `data` over `json`.
-            json (Optional[dict]):
-                JSON body if `data` is not provided. If it's a dict or list, it will be JSON-encoded automatically.
-            **kwargs (Any):
-                Additional arguments to be passed to `execute_request`.
-
-        Returns:
-            Response: The response object.
+        :param url: Request URL
+        :param data: Request body (form data or raw bytes)
+        :param json: JSON body (alternative to data)
+        :param kwargs: Additional arguments for execute_request
+        :return: Response object
         """
         return await self.execute_request(method="PUT", url=url, data=data, json=json, **kwargs)
 
@@ -590,18 +561,11 @@ class AsyncSession:
         """
         Sends an asynchronous PATCH request.
 
-        Args:
-            url (str):
-                The request URL.
-            data (Optional[Union[str, dict]]):
-                The request body for form data or raw string/bytes. Priority is given to `data` over `json`.
-            json (Optional[dict]):
-                JSON body if `data` is not provided. If it's a dict or list, it will be JSON-encoded automatically.
-            **kwargs (Any):
-                Additional arguments to be passed to `execute_request`.
-
-        Returns:
-            Response: The response object.
+        :param url: Request URL
+        :param data: Request body (form data or raw bytes)
+        :param json: JSON body (alternative to data)
+        :param kwargs: Additional arguments for execute_request
+        :return: Response object
         """
         return await self.execute_request(method="PATCH", url=url, data=data, json=json, **kwargs)
 
@@ -609,13 +573,8 @@ class AsyncSession:
         """
         Sends an asynchronous DELETE request.
 
-        Args:
-            url (str):
-                The request URL.
-            **kwargs (Any):
-                Additional arguments to be passed to `execute_request`.
-
-        Returns:
-            Response: The response object.
+        :param url: Request URL
+        :param kwargs: Additional arguments for execute_request
+        :return: Response object
         """
         return await self.execute_request(method="DELETE", url=url, **kwargs)
