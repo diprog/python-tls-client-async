@@ -72,8 +72,16 @@ def build_response(res: Union[dict, list], res_cookies: RequestsCookieJar) -> Re
     response.headers = response_headers
     # Add cookies
     response.cookies = res_cookies
+
+    # Decode the byte-response (base64 format)
+    try:
+        data_part = res["body"].split(',', 1)[1]
+    except IndexError:
+        import logging
+        logging.warning("Invalid base64 response format")
+        data_part = res["body"]
     # Add response body
-    response.text = base64.b64decode(res["body"].split(',')[1]).decode(errors='ignore')
+    response.text = base64.b64decode(data_part).decode(errors='ignore')
     # Add response content (bytes)
-    response._content = base64.b64decode(res["body"].split(',')[1])
+    response._content = base64.b64decode(data_part)
     return response
