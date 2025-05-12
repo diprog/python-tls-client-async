@@ -4,7 +4,7 @@ from http.cookiejar import Cookie, CookieJar
 from typing import Any, MutableMapping, Union
 from urllib.parse import urlparse, urlunparse
 
-from .structures import CaseInsensitiveDict
+from requests.structures import CaseInsensitiveDict
 
 try:
     import threading

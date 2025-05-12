@@ -28,6 +28,7 @@ classifiers = [
 requires-python = ">=3.9"
 dependencies = [
     "typing-extensions>=4.0",
+    "requests" # tested with 2.32.2
 ]
 
 [project.urls]

@@ -6,11 +6,12 @@ import uuid
 from json import dumps, loads
 from typing import Any, Optional, Union
 
+from requests.structures import CaseInsensitiveDict
+
 from async_tls_client.cffi import destroySession, freeMemory, request
 from async_tls_client.cookies import cookiejar_from_dict, extract_cookies_to_jar, merge_cookies
 from async_tls_client.exceptions import TLSClientException
 from async_tls_client.response import Response, build_response
-from async_tls_client.structures import CaseInsensitiveDict
 from async_tls_client.types import ClientIdentifiers, Curves, DelegatedSignatureAlgorithms, H2Settings, \
     SignatureAlgorithms, \
     TLSVersions

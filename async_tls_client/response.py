@@ -2,8 +2,9 @@ import base64
 import json
 from typing import Union
 
+from requests.structures import CaseInsensitiveDict
+
 from .cookies import RequestsCookieJar, cookiejar_from_dict
-from .structures import CaseInsensitiveDict
 
 
 class Response:
