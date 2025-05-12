@@ -1,18 +1,17 @@
-from .cffi import request, freeMemory, destroySession
-from .cookies import cookiejar_from_dict, merge_cookies, extract_cookies_to_jar
-from .exceptions import TLSClientExeption
-from .response import build_response, Response
-from .settings import ClientIdentifiers
-from .structures import CaseInsensitiveDict
-from .__version__ import __version__
-
-from typing import Any, Dict, List, Optional, Union
-from json import dumps, loads
-import urllib.parse
+import asyncio
 import base64
 import ctypes
+import urllib.parse
 import uuid
-import asyncio
+from json import dumps, loads
+from typing import Any, Dict, List, Optional, Union
+
+from .cffi import destroySession, freeMemory, request
+from .cookies import cookiejar_from_dict, extract_cookies_to_jar, merge_cookies
+from .exceptions import TLSClientExeption
+from .response import Response, build_response
+from .settings import ClientIdentifiers
+from .structures import CaseInsensitiveDict
 
 
 class AsyncSession:
@@ -41,27 +40,27 @@ class AsyncSession:
     """
 
     def __init__(
-        self,
-        client_identifier: ClientIdentifiers = "chrome_120",
-        ja3_string: Optional[str] = None,
-        h2_settings: Optional[Dict[str, int]] = None,
-        h2_settings_order: Optional[List[str]] = None,
-        supported_signature_algorithms: Optional[List[str]] = None,
-        supported_delegated_credentials_algorithms: Optional[List[str]] = None,
-        supported_versions: Optional[List[str]] = None,
-        key_share_curves: Optional[List[str]] = None,
-        cert_compression_algo: str = None,
-        additional_decode: str = None,
-        pseudo_header_order: Optional[List[str]] = None,
-        connection_flow: Optional[int] = None,
-        priority_frames: Optional[list] = None,
-        header_order: Optional[List[str]] = None,
-        header_priority: Optional[List[str]] = None,
-        random_tls_extension_order: Optional[bool] = False,
-        force_http1: Optional[bool] = False,
-        catch_panics: Optional[bool] = False,
-        debug: Optional[bool] = False,
-        certificate_pinning: Optional[Dict[str, List[str]]] = None,
+            self,
+            client_identifier: ClientIdentifiers = "chrome_120",
+            ja3_string: Optional[str] = None,
+            h2_settings: Optional[Dict[str, int]] = None,
+            h2_settings_order: Optional[List[str]] = None,
+            supported_signature_algorithms: Optional[List[str]] = None,
+            supported_delegated_credentials_algorithms: Optional[List[str]] = None,
+            supported_versions: Optional[List[str]] = None,
+            key_share_curves: Optional[List[str]] = None,
+            cert_compression_algo: str = None,
+            additional_decode: str = None,
+            pseudo_header_order: Optional[List[str]] = None,
+            connection_flow: Optional[int] = None,
+            priority_frames: Optional[list] = None,
+            header_order: Optional[List[str]] = None,
+            header_priority: Optional[List[str]] = None,
+            random_tls_extension_order: Optional[bool] = False,
+            force_http1: Optional[bool] = False,
+            catch_panics: Optional[bool] = False,
+            debug: Optional[bool] = False,
+            certificate_pinning: Optional[Dict[str, List[str]]] = None,
     ) -> None:
         """
         Initializes the AsyncSession with various HTTP and TLS parameters.
@@ -307,18 +306,18 @@ class AsyncSession:
         return destroy_session_response_string
 
     async def execute_request(
-        self,
-        method: str,
-        url: str,
-        params: Optional[dict] = None,
-        data: Optional[Union[str, dict]] = None,
-        headers: Optional[dict] = None,
-        cookies: Optional[dict] = None,
-        json: Optional[dict] = None,
-        allow_redirects: Optional[bool] = False,
-        insecure_skip_verify: Optional[bool] = False,
-        timeout_seconds: Optional[int] = None,
-        proxy: Optional[dict] = None
+            self,
+            method: str,
+            url: str,
+            params: Optional[dict] = None,
+            data: Optional[Union[str, dict]] = None,
+            headers: Optional[dict] = None,
+            cookies: Optional[dict] = None,
+            json: Optional[dict] = None,
+            allow_redirects: Optional[bool] = False,
+            insecure_skip_verify: Optional[bool] = False,
+            timeout_seconds: Optional[int] = None,
+            proxy: Optional[dict] = None
     ) -> Response:
         """
         Executes an HTTP request using the Go-based TLS client in a separate thread.
@@ -358,6 +357,7 @@ class AsyncSession:
         Raises:
             TLSClientExeption: If the underlying Go client returns a status code of 0 (error).
         """
+
         def build_payload():
             # Prepare URL - add params to url
             final_url = url
@@ -531,11 +531,11 @@ class AsyncSession:
         return await self.execute_request(method="HEAD", url=url, **kwargs)
 
     async def post(
-        self,
-        url: str,
-        data: Optional[Union[str, dict]] = None,
-        json: Optional[dict] = None,
-        **kwargs: Any
+            self,
+            url: str,
+            data: Optional[Union[str, dict]] = None,
+            json: Optional[dict] = None,
+            **kwargs: Any
     ) -> Response:
         """
         Sends an asynchronous POST request.
@@ -556,11 +556,11 @@ class AsyncSession:
         return await self.execute_request(method="POST", url=url, data=data, json=json, **kwargs)
 
     async def put(
-        self,
-        url: str,
-        data: Optional[Union[str, dict]] = None,
-        json: Optional[dict] = None,
-        **kwargs: Any
+            self,
+            url: str,
+            data: Optional[Union[str, dict]] = None,
+            json: Optional[dict] = None,
+            **kwargs: Any
     ) -> Response:
         """
         Sends an asynchronous PUT request.
@@ -581,11 +581,11 @@ class AsyncSession:
         return await self.execute_request(method="PUT", url=url, data=data, json=json, **kwargs)
 
     async def patch(
-        self,
-        url: str,
-        data: Optional[Union[str, dict]] = None,
-        json: Optional[dict] = None,
-        **kwargs: Any
+            self,
+            url: str,
+            data: Optional[Union[str, dict]] = None,
+            json: Optional[dict] = None,
+            **kwargs: Any
     ) -> Response:
         """
         Sends an asynchronous PATCH request.

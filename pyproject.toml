@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "async_tls_client"
+version = "1.1"
+description = "Asyncio-first TLS client with advanced fingerprinting capabilities"
+readme = "README.md"
+authors = [
+    { name = "Diprog", email = "your@email.com" },
+    { name = "Florian Zager", email = "florian.zager@gmail.com" }
+]
+license = { text = "MIT" }
+keywords = ["tls", "asyncio", "http-client", "ja3", "fingerprinting", "http2"]
+classifiers = [
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "typing-extensions>=4.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/diprog/python-tls-client-async"
+Documentation = "https://github.com/diprog/python-tls-client-async#readme"
+Original = "https://github.com/FlorianREGAZ/Python-Tls-Client"
+Issues = "https://github.com/diprog/python-tls-client-async/issues"
+Changelog = "https://github.com/diprog/python-tls-client-async/releases"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+async_tls_client = [
+    "dependencies/*.dll",
+    "dependencies/*.dylib",
+    "dependencies/*.so",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["async_tls_client*"]
+exclude = ["tests*", "examples*", "scripts*"]

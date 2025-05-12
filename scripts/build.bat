@@ -1,2 +1,4 @@
-python setup.py sdist bdist_wheel
-twine upload dist/* --verbose
+@echo off
+python -m pip install --upgrade build twine
+python -m build --sdist --wheel --outdir dist/
+twine upload dist/*
