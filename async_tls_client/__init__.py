@@ -12,4 +12,4 @@
 # tls-client: https://github.com/bogdanfinn/tls-client
 # requests: https://github.com/psf/requests
 
-from .sessions import AsyncSession
+from async_tls_client.session.async_session import AsyncSession

@@ -6,12 +6,12 @@ import uuid
 from json import dumps, loads
 from typing import Any, Dict, List, Optional, Union
 
-from .cffi import destroySession, freeMemory, request
-from .cookies import cookiejar_from_dict, extract_cookies_to_jar, merge_cookies
-from .exceptions import TLSClientExeption
-from .response import Response, build_response
-from .settings import ClientIdentifiers
-from .structures import CaseInsensitiveDict
+from async_tls_client.cffi import destroySession, freeMemory, request
+from async_tls_client.cookies import cookiejar_from_dict, extract_cookies_to_jar, merge_cookies
+from async_tls_client.exceptions import TLSClientException
+from async_tls_client.response import Response, build_response
+from async_tls_client.types import ClientIdentifiers
+from async_tls_client.structures import CaseInsensitiveDict
 
 
 class AsyncSession:
@@ -475,7 +475,7 @@ class AsyncSession:
         await asyncio.to_thread(freeMemory, response_object['id'].encode('utf-8'))
 
         if response_object["status"] == 0:
-            raise TLSClientExeption(response_object["body"])
+            raise TLSClientException(response_object["body"])
 
         response_cookie_jar = extract_cookies_to_jar(
             request_url=url,
