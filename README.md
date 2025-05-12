@@ -36,12 +36,9 @@ asyncio.run(main())
 
 ## Why This Fork? 🚀
 
-This project was created to address the lack of updates in the original Python-TLS-Client while incorporating:
-- Modern Python 3.9+ features and async/await syntax
-- Active updates from the underlying [tls-client](https://github.com/bogdanfinn/tls-client) Go library
-- Improved error handling and debugging capabilities
-- Better documentation and developer experience
-- Enhanced security features for enterprise use cases
+The fork was created due to the lack of updates in the original repository, while the underlying GoLang
+library [tls-client](https://github.com/bogdanfinn/tls-client) continues to evolve actively. This project aims to keep
+up with the latest developments in the GoLang library and provide a modern, asynchronous interface for Python users.
 
 ## Installation 📦
 
