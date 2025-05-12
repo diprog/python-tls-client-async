@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "async_tls_client"
-version = "1.1.1"
+version = "1.2"
 description = "Asyncio TLS client with advanced fingerprinting capabilities"
 readme = "README.md"
 
