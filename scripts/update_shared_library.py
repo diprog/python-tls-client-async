@@ -1,40 +1,64 @@
 import requests
+import os
+import re
 
-shared_library_version = "1.9.1"
-github_download_url = "https://github.com/bogdanfinn/tls-client/releases/download/v{}/{}"
-github_repo_filenames = [
-    # Windows
-    f"tls-client-windows-32-{shared_library_version}.dll",
-    f"tls-client-windows-64-{shared_library_version}.dll",
-    # MacOS
-    f"tls-client-darwin-arm64-{shared_library_version}.dylib",
-    f"tls-client-darwin-amd64-{shared_library_version}.dylib",
-    # Linux
-    # f"tls-client-linux-alpine-amd64-{shared_library_version}.so", # Removed in 1.7.8
-    f"tls-client-linux-ubuntu-amd64-{shared_library_version}.so",
-    f"tls-client-linux-ubuntu-amd64-{shared_library_version}.so",
-    f"tls-client-linux-arm64-{shared_library_version}.so"
-]
-dependency_filenames = [
-    # Windows
-    "tls-client-32.dll",
-    "tls-client-64.dll",
-    # MacOS
-    "tls-client-arm64.dylib",
-    "tls-client-x86.dylib",
-    # Linux
-    "tls-client-amd64.so",
-    "tls-client-x86.so",
-    "tls-client-arm64.so"
-]
+REPO = "bogdanfinn/tls-client"
+DEST_DIR = "../async_tls_client/dependencies/"
+MAJOR_VERSION = "1"
 
-for github_filename, dependency_filename in zip(github_repo_filenames, dependency_filenames):
-    filepath = f"../async_tls_client/dependencies/{dependency_filename}"
-    url = github_download_url.format(shared_library_version, github_filename)
-    print(f'Downloading {url}...')
-    response = requests.get(url=url)
-    if not response.ok:
-        print(f'Failed to fetch ({response.status_code})')
-    print(f'Writing to "{filepath}"...')
-    with open(filepath, "wb") as f:
+# Regex to strip version from filenames like -v1.8.0
+version_pattern = re.compile(r"-v?\d+\.\d+\.\d+")
+
+# Mapping from original GitHub filenames (without version) to local dependency filenames
+rename_map = {
+    # Windows
+    "tls-client-windows-32.dll": "tls-client-32.dll",
+    "tls-client-windows-64.dll": "tls-client-64.dll",
+    # MacOS
+    "tls-client-darwin-arm64.dylib": "tls-client-arm64.dylib",
+    "tls-client-darwin-amd64.dylib": "tls-client-x86.dylib",
+    # Linux
+    "tls-client-linux-alpine-amd64.so": "tls-client-amd64.so",
+    "tls-client-linux-ubuntu-amd64.so": "tls-client-x86.so",
+    "tls-client-linux-arm64.so": "tls-client-arm64.so",
+}
+
+# Fetch all releases
+releases_url = f"https://api.github.com/repos/{REPO}/releases"
+releases = requests.get(releases_url).json()
+
+# Find the latest release with the desired major version
+latest_release = None
+for release in releases:
+    tag = release.get("tag_name", "")
+    version = tag.lstrip("v")
+    if version.startswith(MAJOR_VERSION + "."):
+        latest_release = release
+        break
+
+if not latest_release:
+    print(f"No release found with major version {MAJOR_VERSION}.")
+    exit(1)
+
+tag_name = latest_release["tag_name"]
+assets = latest_release.get("assets", [])
+os.makedirs(DEST_DIR, exist_ok=True)
+
+for asset in assets:
+    name = asset["name"]
+
+    # Strip version from filename
+    name_stripped = version_pattern.sub("", name)
+
+    # Apply renaming if matched
+    target_name = rename_map.get(name_stripped)
+    if not target_name:
+        print(f"Skipping unmatched file: {name}")
+        continue
+
+    download_url = asset["browser_download_url"]
+    print(f"Downloading {name} → {target_name}")
+
+    response = requests.get(download_url)
+    with open(os.path.join(DEST_DIR, target_name), "wb") as f:
         f.write(response.content)
