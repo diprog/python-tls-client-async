@@ -4,19 +4,22 @@
 [![Python versions](https://img.shields.io/pypi/pyversions/async_tls_client.svg)](https://pypi.org/project/async_tls_client/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-Asyncio-first TLS client for Python with advanced fingerprinting capabilities. Modern fork of [Python-TLS-Client](https://github.com/FlorianREGAZ/Python-Tls-Client) with enhanced features and active maintenance.
+Asyncio-first TLS client for Python with advanced fingerprinting capabilities. Modern fork
+of [Python-TLS-Client](https://github.com/FlorianREGAZ/Python-Tls-Client) with enhanced features and active maintenance.
 
 ```python
 from async_tls_client import AsyncClient
 import asyncio
 
+
 async def main():
     async with AsyncClient(
-        client_identifier="chrome120",
-        random_tls_extension_order=True
+            client_identifier="chrome120",
+            random_tls_extension_order=True
     ) as client:
         response = await client.get("https://tls.peet.ws/api/all")
         print(f"Detected TLS fingerprint: {response.json()['tls']['ja3_hash']}")
+
 
 asyncio.run(main())
 ```
@@ -27,10 +30,10 @@ asyncio.run(main())
 - **Modern TLS Fingerprinting**: JA3, JA4, HTTP/2 fingerprints and TLS 1.3 support
 - **Client Profiles**: 50+ preconfigured clients (Chrome, Firefox, Safari, iOS, Android)
 - **Advanced Configuration**:
-  - Custom TLS cipher suites & extensions
-  - HTTP/2 and QUIC protocol support
-  - Certificate pinning and compression
-  - Proxy support (HTTP/S, SOCKS4/5)
+    - Custom TLS cipher suites & extensions
+    - HTTP/2 and QUIC protocol support
+    - Certificate pinning and compression
+    - Proxy support (HTTP/S, SOCKS4/5)
 - **Auto-Cookie Management**: Session persistence with configurable cookie jars
 - **Request Manipulation**: Header ordering, pseudo-header customization, and priority control
 
@@ -39,6 +42,38 @@ asyncio.run(main())
 The fork was created due to the lack of updates in the original repository, while the underlying GoLang
 library [tls-client](https://github.com/bogdanfinn/tls-client) continues to evolve actively. This project aims to keep
 up with the latest developments in the GoLang library and provide a modern, asynchronous interface for Python users.
+
+## Upcoming Breaking Changes 🚧
+
+The library plans several breaking changes in future major releases to improve maintainability and reduce technical
+debt:
+
+### Key Changes Planned:
+
+1. **Syntax Divergence from `requests`**
+    - The API will evolve to be less similar to `requests` to avoid dependency on its internal implementations.
+    - This may affect session/request patterns and method signatures.
+
+2. **Direct Import of `CaseInsensitiveDict`**
+    - The current custom `CaseInsensitiveDict` (copied from `requests.structures`) will be replaced by direct imports
+      from `requests` or standard library alternatives.
+    - Users relying on `async_tls_client.structures.CaseInsensitiveDict` should prepare for import path changes.
+
+3. **Standard `http.cookiejar.CookieJar` Implementation**
+    - The custom `RequestsCookieJar` (borrowed from `requests`) will be replaced with `http.cookiejar.CookieJar` for
+      cookie management.
+    - This may impact cookie handling APIs and persistence behavior.
+
+4. **Response Class Refactoring**
+    - The `Response` class may undergo structural changes to simplify implementation and align with modern Python
+      practices.
+    - Potential impacts include changes to attribute access, content handling, or JSON parsing methods.
+
+### Recommendations:
+
+- Monitor changelogs for deprecation warnings in future minor releases
+- Avoid direct reliance on internal modules like `async_tls_client.structures` or `async_tls_client.cookies`
+- Consider contributing feedback on the proposed changes through GitHub issues
 
 ## Installation 📦
 
@@ -54,6 +89,7 @@ pip install async_tls_client
 from async_tls_client import AsyncClient
 import asyncio
 
+
 async def main():
     async with AsyncClient("chrome120") as client:
         response = await client.get(
@@ -64,6 +100,7 @@ async def main():
         print(f"Status: {response.status_code}")
         print(f"Headers: {response.headers}")
         print(f"JSON: {response.json()}")
+
 
 asyncio.run(main())
 ```
@@ -101,17 +138,17 @@ client = AsyncClient(
 
 Preconfigured client identifiers (https://github.com/bogdanfinn/tls-client/blob/master/profiles/profiles.go):
 
-| Browser/Framework       | Available Profiles                                                                 |
-|-------------------------|------------------------------------------------------------------------------------|
-| Chrome                  | chrome_103 - chrome_133 (including PSK variants: 116_PSK, 116_PSK_PQ, 131_PSK, 133_PSK) |
-| Firefox                 | firefox_102 - firefox_135                                                          |
-| Safari (Desktop)        | safari_15_6_1, safari_16_0, safari_ipad_15_6                                       |
-| Safari (iOS)            | safari_ios_15_5 - safari_ios_18_0                                                  |
-| Opera                   | opera_89 - opera_91                                                                |
-| Android (OkHttp)        | okhttp4_android_7 - okhttp4_android_13                                             |
-| iOS (Custom)            | mms_ios (v1, v2, v3), mesh_ios (v1, v2), confirmed_ios, zalando_ios_mobile, nike_ios_mobile |
-| Android (Custom)        | mesh_android (v1, v2), confirmed_android, zalando_android_mobile, nike_android_mobile |
-| Cloudflare              | cloudscraper                                                                       |
+| Browser/Framework | Available Profiles                                                                          |
+|-------------------|---------------------------------------------------------------------------------------------|
+| Chrome            | chrome_103 - chrome_133 (including PSK variants: 116_PSK, 116_PSK_PQ, 131_PSK, 133_PSK)     |
+| Firefox           | firefox_102 - firefox_135                                                                   |
+| Safari (Desktop)  | safari_15_6_1, safari_16_0, safari_ipad_15_6                                                |
+| Safari (iOS)      | safari_ios_15_5 - safari_ios_18_0                                                           |
+| Opera             | opera_89 - opera_91                                                                         |
+| Android (OkHttp)  | okhttp4_android_7 - okhttp4_android_13                                                      |
+| iOS (Custom)      | mms_ios (v1, v2, v3), mesh_ios (v1, v2), confirmed_ios, zalando_ios_mobile, nike_ios_mobile |
+| Android (Custom)  | mesh_android (v1, v2), confirmed_android, zalando_android_mobile, nike_android_mobile       |
+| Cloudflare        | cloudscraper                                                                                |
 
 ## Advanced Features 🔧
 
@@ -155,34 +192,37 @@ response = await client.get(
 The client leverages Python's asyncio through three key strategies:
 
 1. **Non-blocking I/O**
-   - Network operations run in separate threads using `asyncio.to_thread`
-   - Go TLS client handles remain managed in background executors
+    - Network operations run in separate threads using `asyncio.to_thread`
+    - Go TLS client handles remain managed in background executors
 
 2. **Session Management**
-   - `AsyncClient` context manager handles automatic cleanup
-   - Connection pooling with automatic keep-alives
-   - Cookie persistence across requests
+    - `AsyncClient` context manager handles automatic cleanup
+    - Connection pooling with automatic keep-alives
+    - Cookie persistence across requests
 
 3. **Resource Optimization**
-   - Zero-copy body handling for large responses
-   - Lazy initialization of heavy resources
-   - Automatic memory cleanup of Go pointers
+    - Zero-copy body handling for large responses
+    - Lazy initialization of heavy resources
+    - Automatic memory cleanup of Go pointers
 
 ## Packaging 📦
 
 When using PyInstaller/PyArmor, include the shared library:
 
 ### Windows
+
 ```bash
 --add-binary 'async_tls_client/dependencies/tls-client-64.dll;async_tls_client/dependencies'
 ```
 
 ### Linux
+
 ```bash
 --add-binary 'async_tls_client/dependencies/tls-client-x86.so:async_tls_client/dependencies'
 ```
 
 ### macOS
+
 ```bash
 --add-binary 'async_tls_client/dependencies/tls-client-arm64.dylib:async_tls_client/dependencies'
 ```
