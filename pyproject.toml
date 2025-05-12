@@ -30,10 +30,6 @@ dependencies = [
     "typing-extensions>=4.0",
 ]
 
-# Legacy fields
-author = "Diprog, Florian Zager"
-url = "https://github.com/diprog/python-tls-client-async"
-
 [project.urls]
 Homepage = "https://github.com/diprog/python-tls-client-async"
 Documentation = "https://github.com/diprog/python-tls-client-async#readme"
@@ -55,3 +51,15 @@ async_tls_client = [
 where = ["."]
 include = ["async_tls_client*"]
 exclude = ["tests*", "examples*", "scripts*"]
+
+
+# Tests
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.20",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+addopts = "-v"
