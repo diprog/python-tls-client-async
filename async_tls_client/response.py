@@ -1,10 +1,11 @@
 import base64
 import json
+from http.cookiejar import CookieJar
 from typing import Union
 
-from requests.structures import CaseInsensitiveDict
+from nocasedict import NocaseDict
 
-from .cookies import RequestsCookieJar, cookiejar_from_dict
+from .cookies import cookiejar_from_dict
 
 
 class Response:
@@ -16,13 +17,14 @@ class Response:
         self.url = None
 
         # Integer Code of responded HTTP Status, e.g. 404 or 200.
-        self.status_code = None
+        self.status_code = self.status = None
+
 
         # String of responded HTTP Body.
         self.text = None
 
         # Case-insensitive Dictionary of Response Headers.
-        self.headers = CaseInsensitiveDict()
+        self.headers = NocaseDict()
 
         # A CookieJar of Cookies the server sent back.
         self.cookies = cookiejar_from_dict({})
@@ -55,13 +57,13 @@ class Response:
         return self._content
 
 
-def build_response(res: Union[dict, list], res_cookies: RequestsCookieJar) -> Response:
+def build_response(res: Union[dict, list], res_cookies: CookieJar) -> Response:
     """Builds a Response object """
     response = Response()
     # Add target / url
     response.url = res["target"]
     # Add status code
-    response.status_code = res["status"]
+    response.status_code = response.status = res["status"]
     # Add headers
     response_headers = {}
     if res["headers"] is not None:
@@ -81,6 +83,7 @@ def build_response(res: Union[dict, list], res_cookies: RequestsCookieJar) -> Re
         import logging
         logging.warning("Invalid base64 response format")
         data_part = res["body"]
+
     # Add response body
     response.text = base64.b64decode(data_part).decode(errors='ignore')
     # Add response content (bytes)

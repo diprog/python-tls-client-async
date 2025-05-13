@@ -43,32 +43,6 @@ The fork was created due to the lack of updates in the original repository, whil
 library [tls-client](https://github.com/bogdanfinn/tls-client) continues to evolve actively. This project aims to keep
 up with the latest developments in the GoLang library and provide a modern, asynchronous interface for Python users.
 
-## Upcoming Breaking Changes 🚧
-
-The library plans several breaking changes in future major releases to improve maintainability and reduce technical
-debt:
-
-### Key Changes Planned:
-
-1. **Syntax Divergence from `requests`**
-    - The API will evolve to be less similar to `requests` to avoid dependency on its internal implementations.
-    - This may affect session/request patterns and method signatures.
-
-2. **Direct Import of `CaseInsensitiveDict`**
-    - The current custom `CaseInsensitiveDict` (copied from `requests.structures`) will be replaced by direct imports
-      from `requests` or standard library alternatives.
-    - Users relying on `async_tls_client.structures.CaseInsensitiveDict` should prepare for import path changes.
-
-3. **Standard `http.cookiejar.CookieJar` Implementation**
-    - The custom `RequestsCookieJar` (borrowed from `requests`) will be replaced with `http.cookiejar.CookieJar` for
-      cookie management.
-    - This may impact cookie handling APIs and persistence behavior.
-
-4. **Response Class Refactoring**
-    - The `Response` class may undergo structural changes to simplify implementation and align with modern Python
-      practices.
-    - Potential impacts include changes to attribute access, content handling, or JSON parsing methods.
-
 ### Recommendations:
 
 - Monitor changelogs for deprecation warnings in future minor releases
