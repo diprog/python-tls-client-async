@@ -55,7 +55,7 @@ class AsyncSession:
             supported_delegated_credentials_algorithms: Optional[list[DelegatedSignatureAlgorithms]] = None,
             supported_versions: Optional[list[TLSVersions]] = None,
             key_share_curves: Optional[list[Curves]] = None,
-            cert_compression_algo: str = None,
+            cert_compression_algos: list[str] = None,
             additional_decode: str = None,
             pseudo_header_order: Optional[list[str]] = None,
             connection_flow: Optional[int] = None,
@@ -166,8 +166,8 @@ class AsyncSession:
 
                 ["GREASE", "X25519"]
 
-        :param cert_compression_algo: Certificate compression algorithm.
-            Examples: "zlib", "brotli", "zstd"
+        :param cert_compression_algos: Certificate compression algorithms.
+            Example: ["zlib", "brotli", "zstd"]
 
         :param additional_decode: Explicit response decoding algorithm.
             Examples: "gzip", "br", "deflate"
@@ -271,7 +271,7 @@ class AsyncSession:
         self.supported_delegated_credentials_algorithms = supported_delegated_credentials_algorithms
         self.supported_versions = supported_versions
         self.key_share_curves = key_share_curves
-        self.cert_compression_algo = cert_compression_algo
+        self.cert_compression_algos = cert_compression_algos
         self.additional_decode = additional_decode
         self.pseudo_header_order = pseudo_header_order
         self.connection_flow = connection_flow

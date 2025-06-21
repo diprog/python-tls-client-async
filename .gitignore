@@ -241,3 +241,8 @@ fabric.properties
 
 # PyPI configuration file
 .pypirc
+
+*.ps1
+
+.venv*/
+.idea/

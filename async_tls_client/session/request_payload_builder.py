@@ -140,6 +140,7 @@ def _prepare_proxy(proxy: Optional[Union[dict, str]]) -> str:
 def _configure_tls_client(session: "AsyncSession", payload: dict):
     """Configure TLS client parameters in payload."""
     if session.client_identifier is None:
+        payload["tlsClientIdentifier"] = ""
         payload["customTlsClient"] = {
             "ja3String": session.ja3_string,
             "h2Settings": session.h2_settings,
@@ -148,11 +149,13 @@ def _configure_tls_client(session: "AsyncSession", payload: dict):
             "connectionFlow": session.connection_flow,
             "priorityFrames": session.priority_frames,
             "headerPriority": session.header_priority,
-            "certCompressionAlgo": session.cert_compression_algo,
+            "certCompressionAlgos": session.cert_compression_algos,
             "supportedVersions": session.supported_versions,
             "supportedSignatureAlgorithms": session.supported_signature_algorithms,
             "supportedDelegatedCredentialsAlgorithms": session.supported_delegated_credentials_algorithms,
             "keyShareCurves": session.key_share_curves,
+            "alpnProtocols": ["h2", "http/1.1"],
+            "alpsProtocols": ["h2"],
         }
     else:
         payload["tlsClientIdentifier"] = session.client_identifier
