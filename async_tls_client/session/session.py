@@ -1,6 +1,6 @@
 import uuid
 from http.cookiejar import CookieJar
-from typing import Optional, Union, Unpack
+from typing import Dict, List, Optional, Union, Unpack
 
 from nocasedict import NocaseDict
 
@@ -49,24 +49,52 @@ class AsyncSession:
             self,
             client_identifier: ClientIdentifiers = "chrome_133",
             ja3_string: Optional[str] = None,
-            h2_settings: Optional[dict[H2Settings, int]] = None,
-            h2_settings_order: Optional[list[str]] = None,
-            supported_signature_algorithms: Optional[list[SignatureAlgorithms]] = None,
-            supported_delegated_credentials_algorithms: Optional[list[DelegatedSignatureAlgorithms]] = None,
-            supported_versions: Optional[list[TLSVersions]] = None,
-            key_share_curves: Optional[list[Curves]] = None,
-            cert_compression_algos: list[str] = None,
-            additional_decode: str = None,
-            pseudo_header_order: Optional[list[str]] = None,
+            h2_settings: Optional[Dict[H2Settings, int]] = None,
+            h2_settings_order: Optional[List[str]] = None,
+            supported_signature_algorithms: Optional[List[SignatureAlgorithms]] = None,
+            supported_delegated_credentials_algorithms: Optional[List[DelegatedSignatureAlgorithms]] = None,
+            supported_versions: Optional[List[TLSVersions]] = None,
+            key_share_curves: Optional[List[Curves]] = None,
+            cert_compression_algos: Optional[List[str]] = None,
+            additional_decode: Optional[str] = None,
+            pseudo_header_order: Optional[List[str]] = None,
             connection_flow: Optional[int] = None,
-            priority_frames: Optional[list] = None,
-            header_order: Optional[list[str]] = None,
-            header_priority: Optional[list[str]] = None,
-            random_tls_extension_order: Optional[bool] = False,
-            force_http1: Optional[bool] = False,
-            catch_panics: Optional[bool] = False,
-            debug: Optional[bool] = False,
-            certificate_pinning: Optional[dict[str, list[str]]] = None,
+            priority_frames: Optional[List[Dict]] = None,
+            header_order: Optional[List[str]] = None,
+            header_priority: Optional[Dict] = None,
+            random_tls_extension_order: bool = False,
+            force_http1: bool = False,
+            catch_panics: bool = False,
+            debug: bool = False,
+            certificate_pinning: Optional[Dict[str, List[str]]] = None,
+            session_id: Optional[str] = None,
+            # 2.1.0 params
+            without_cookie_jar: bool = False,
+            with_default_cookie_jar: bool = True,
+            disable_ipv4: bool = False,
+            disable_ipv6: bool = False,
+            is_rotating_proxy: bool = False,
+            server_name_overwrite: Optional[str] = None,
+            local_address: Optional[str] = None,
+            timeout_milliseconds: Optional[int] = None,
+            idle_conn_timeout: Optional[float] = None,
+            max_idle_conns: Optional[int] = None,
+            max_idle_conns_per_host: Optional[int] = None,
+            max_conns_per_host: Optional[int] = None,
+            max_response_header_bytes: Optional[int] = None,
+            write_buffer_size: Optional[int] = None,
+            read_buffer_size: Optional[int] = None,
+            disable_keep_alives: Optional[bool] = None,
+            disable_compression: Optional[bool] = None,
+            default_headers: Optional[Dict[str, List[str]]] = None,
+            connect_headers: Optional[Dict[str, List[str]]] = None,
+            stream_output_path: Optional[str] = None,
+            stream_output_block_size: Optional[int] = None,
+            stream_output_eof_symbol: Optional[str] = None,
+            alps_protocols: Optional[List[str]] = None,
+            ech_candidate_payloads: Optional[List[int]] = None,
+            ech_candidate_cipher_suites: Optional[List[Dict]] = None,
+            record_size_limit: Optional[int] = None
     ) -> None:
         """
         Initializes the AsyncSession with various HTTP and TLS parameters.
@@ -253,8 +281,8 @@ class AsyncSession:
                     ]
                 }
         """
-        self._session_id = str(uuid.uuid4())
         # Standard Settings
+        self.session_id = session_id or str(uuid.uuid4())
         self.headers = NocaseDict()  # Defaults to o-http-client/2.0
         self.proxies = {}
         self.params = {}
@@ -283,6 +311,34 @@ class AsyncSession:
         self.catch_panics = catch_panics
         self.debug = debug
 
+        # 2.1.0 params
+        self.without_cookie_jar = without_cookie_jar
+        self.with_default_cookie_jar = with_default_cookie_jar
+        self.disable_ipv4 = disable_ipv4
+        self.disable_ipv6 = disable_ipv6
+        self.is_rotating_proxy = is_rotating_proxy
+        self.server_name_overwrite = server_name_overwrite
+        self.local_address = local_address
+        self.timeout_milliseconds = timeout_milliseconds
+        self.idle_conn_timeout = idle_conn_timeout
+        self.max_idle_conns = max_idle_conns
+        self.max_idle_conns_per_host = max_idle_conns_per_host
+        self.max_conns_per_host = max_conns_per_host
+        self.max_response_header_bytes = max_response_header_bytes
+        self.write_buffer_size = write_buffer_size
+        self.read_buffer_size = read_buffer_size
+        self.disable_keep_alives = disable_keep_alives
+        self.disable_compression = disable_compression
+        self.default_headers = default_headers
+        self.connect_headers = connect_headers
+        self.stream_output_path = stream_output_path
+        self.stream_output_block_size = stream_output_block_size
+        self.stream_output_eof_symbol = stream_output_eof_symbol
+        self.alps_protocols = alps_protocols
+        self.ech_candidate_payloads = ech_candidate_payloads
+        self.ech_candidate_cipher_suites = ech_candidate_cipher_suites
+        self.record_size_limit = record_size_limit
+
     async def __aenter__(self):
         """
         Enters the session in an asynchronous context manager.
@@ -304,32 +360,23 @@ class AsyncSession:
 
         :return: JSON response string from the destroy session call
         """
-        return await destroy_session(self._session_id)
+        return await destroy_session(self.session_id)
 
     async def get_cookies(self, url: str) -> Optional[list[dict]]:
-        return (await get_cookies_from_session(self._session_id, url))["cookies"]
+        return (await get_cookies_from_session(self.session_id, url))["cookies"]
 
     async def add_cookies(self, cookies: Union[dict[str, str], list[dict]], url: str):
         if isinstance(cookies, dict):
             cookies = [{"name": name, "value": value} for name, value in cookies.items()]
 
-        await add_cookies_to_session(self._session_id, cookies, url)
+        await add_cookies_to_session(self.session_id, cookies, url)
 
     async def execute_request(
-            self,
-            method: str,
-            url: str,
-            **kwargs: Unpack[RequestOptions]
+        self,
+        method: str,
+        url: str,
+        **kwargs: Unpack[RequestOptions]
     ) -> Response:
-        """Execute an HTTP request with configured options.
-
-        :param method: HTTP verb to use (GET/POST/etc.)
-        :param url: Target URL for request
-        :param kwargs: Additional request configuration options
-        :return: Response object with request results
-        :raises TLSClientException: For request errors
-        """
-        # Extract parameters from kwargs
         params = kwargs.get('params')
         data = kwargs.get('data')
         headers = kwargs.get('headers')
@@ -338,9 +385,13 @@ class AsyncSession:
         allow_redirects = kwargs.get('allow_redirects', False)
         insecure_skip_verify = kwargs.get('insecure_skip_verify', False)
         timeout_seconds = kwargs.get('timeout_seconds')
+        timeout_milliseconds = kwargs.get('timeout_milliseconds')
         proxy = kwargs.get('proxy')
+        request_host_override = kwargs.get('request_host_override')
+        stream_output_path = kwargs.get('stream_output_path')
+        stream_output_block_size = kwargs.get('stream_output_block_size')
+        stream_output_eof_symbol = kwargs.get('stream_output_eof_symbol')
 
-        # Rest of the method remains unchanged
         payload = build_payload(
             session=self,
             method=method,
@@ -353,7 +404,12 @@ class AsyncSession:
             allow_redirects=allow_redirects,
             insecure_skip_verify=insecure_skip_verify,
             timeout_seconds=timeout_seconds,
-            proxy=proxy
+            timeout_milliseconds=timeout_milliseconds,
+            proxy=proxy,
+            request_host_override=request_host_override,
+            stream_output_path=stream_output_path,
+            stream_output_block_size=stream_output_block_size,
+            stream_output_eof_symbol=stream_output_eof_symbol
         )
 
         response_object = await request(payload)

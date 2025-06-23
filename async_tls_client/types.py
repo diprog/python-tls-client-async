@@ -65,7 +65,12 @@ class RequestOptions(TypedDict, total=False):
     :param allow_redirects: Follow redirects automatically
     :param insecure_skip_verify: Disable TLS verification
     :param timeout_seconds: Request timeout duration
+    :param timeout_milliseconds: Request timeout in milliseconds
     :param proxy: Proxy configuration for request
+    :param request_host_override: Override request Host header
+    :param stream_output_path: Path to write streaming output
+    :param stream_output_block_size: Block size for streamed chunks
+    :param stream_output_eof_symbol: Symbol to signal end of stream
     """
     params: Optional[dict[str, Any]]
     data: Optional[Union[str, bytes, dict[str, Any]]]
@@ -75,4 +80,10 @@ class RequestOptions(TypedDict, total=False):
     allow_redirects: Optional[bool]
     insecure_skip_verify: Optional[bool]
     timeout_seconds: Optional[int]
+    timeout_milliseconds: Optional[int]
     proxy: Optional[Union[dict[str, str], str]]
+    request_host_override: Optional[str]
+    stream_output_path: Optional[str]
+    stream_output_block_size: Optional[int]
+    stream_output_eof_symbol: Optional[str]
+
