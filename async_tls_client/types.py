@@ -80,7 +80,7 @@ class RequestOptions(TypedDict, total=False):
     params: Optional[dict[str, Any]]
     data: Optional[Union[str, bytes, dict[str, Any]]]
     headers: Optional[dict[str, str]]
-    cookies: Optional[dict[str, str]]
+    cookies: Optional[Union[dict[str, str], list[dict[str, str]]]]
     json: Optional[Union[dict[str, Any], list[Any], str]]
     allow_redirects: Optional[bool]
     insecure_skip_verify: Optional[bool]

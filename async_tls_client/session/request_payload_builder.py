@@ -1,7 +1,7 @@
 from base64 import b64encode
-from typing import Any, Dict, Optional, TYPE_CHECKING, Tuple, Union
-from urllib.parse import urlencode
 from json import dumps as json_dumps
+from typing import Any, Dict, Optional, TYPE_CHECKING, Tuple, Union
+from urllib.parse import urlencode, urlparse
 
 if TYPE_CHECKING:
     from .session import AsyncSession
@@ -55,9 +55,29 @@ def _merge_headers(
     return merged
 
 
-def _prepare_cookies(cookies: Optional[Dict[str, str]]) -> Dict[str, str]:
-    """Formats cookies into the expected backend format (name=value dict)."""
-    return cookies or {}
+def _prepare_cookies(request_url: str,
+                     cookies: Optional[Union[Dict[str, str], list[Dict[str, str]]]]) -> list[Dict[str, str]]:
+    """
+    Convert cookies to a list of dicts and infer the domain from the URL for mapping input.
+
+    :param request_url: URL used to extract the cookie domain (hostname).
+    :param cookies: Either a mapping of cookie names to values or a list of cookie dicts.
+                    If a mapping is provided, it will be transformed into
+                    [{"name": k, "value": v, "domain": <hostname>}].
+                    If a list is provided, it is returned unchanged.
+
+    :returns: A list of cookie dicts. For mapping input, each item has "name", "value", and "domain".
+    """
+    if not cookies:
+        return []
+
+    parsed = urlparse(request_url)
+    inferred_domain = parsed.hostname or (parsed.netloc.split(":")[0] if parsed.netloc else "")
+
+    if isinstance(cookies, dict):
+        return [{"name": key, "value": value, "domain": inferred_domain} for key, value in cookies.items()]
+
+    return cookies
 
 
 def _prepare_proxy(proxy: Optional[Union[Dict[str, Any], str]]) -> Optional[str]:
@@ -97,23 +117,23 @@ def _prepare_proxy(proxy: Optional[Union[Dict[str, Any], str]]) -> Optional[str]
 
 
 def build_payload(
-    session: "AsyncSession",
-    method: str,
-    url: str,
-    params: Optional[dict[str, Any]] = None,
-    data: Optional[Union[str, bytes, dict]] = None,
-    headers: Optional[dict[str, str]] = None,
-    cookies: Optional[dict[str, str]] = None,
-    json: Optional[Union[dict, list, str]] = None,
-    allow_redirects: bool = False,
-    insecure_skip_verify: bool = False,
-    timeout_seconds: Optional[int] = None,
-    timeout_milliseconds: Optional[int] = None,
-    proxy: Optional[Union[dict, str]] = None,
-    request_host_override: Optional[str] = None,
-    stream_output_path: Optional[str] = None,
-    stream_output_block_size: Optional[int] = None,
-    stream_output_eof_symbol: Optional[str] = None
+        session: "AsyncSession",
+        method: str,
+        url: str,
+        params: Optional[dict[str, Any]] = None,
+        data: Optional[Union[str, bytes, dict]] = None,
+        headers: Optional[dict[str, str]] = None,
+        cookies: Optional[Union[dict[str, str], list[dict[str, str]]]] = None,
+        json: Optional[Union[dict, list, str]] = None,
+        allow_redirects: bool = False,
+        insecure_skip_verify: bool = False,
+        timeout_seconds: Optional[int] = None,
+        timeout_milliseconds: Optional[int] = None,
+        proxy: Optional[Union[dict, str]] = None,
+        request_host_override: Optional[str] = None,
+        stream_output_path: Optional[str] = None,
+        stream_output_block_size: Optional[int] = None,
+        stream_output_eof_symbol: Optional[str] = None
 ) -> dict:
     final_url = url
     if params:
@@ -123,7 +143,7 @@ def build_payload(
 
     merged_headers = _merge_headers(session.headers, headers, content_type)
 
-    request_cookies = _prepare_cookies(cookies)
+    request_cookies = _prepare_cookies(url, cookies)
 
     final_proxy = _prepare_proxy(proxy)
 
