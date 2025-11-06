@@ -1,6 +1,12 @@
 import uuid
 from http.cookiejar import CookieJar
-from typing import Dict, List, Optional, Union, Unpack
+from typing import Dict, List, Optional, Union
+
+# python 3.11 < support
+try:
+    from typing import Unpack
+except ImportError:
+    from typing_extensions import Unpack
 
 from nocasedict import NocaseDict
 
