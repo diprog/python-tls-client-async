@@ -3,6 +3,8 @@ from json import dumps as json_dumps
 from typing import Any, Dict, Optional, TYPE_CHECKING, Tuple, Union
 from urllib.parse import urlencode, urlparse
 
+from nocasedict import NocaseDict
+
 if TYPE_CHECKING:
     from .session import AsyncSession
 
@@ -38,21 +40,33 @@ def _merge_headers(
         content_type: Optional[str]
 ) -> Dict[str, str]:
     """
-    Merges session headers with request headers, considering Content-Type.
+    Merge session-level and per-request headers into a single mapping.
 
-    Priority:
-    1. Headers from current request
-    2. Headers from session
-    3. Auto-detected Content-Type
+    Rules:
+    - Keys are compared case-insensitively during the merge.
+    - Per-request headers override session headers on key collisions.
+    - If ``content_type`` is provided and no explicit ``Content-Type`` header
+      is present (in any casing), it is added as ``content-type``.
+
+    Notes:
+    This function uses ``NocaseDict`` to ensure case-insensitive behavior while
+    merging. The resulting dictionary is a regular ``dict`` with the key
+    casing preserved from the last writer for each header.
+
+    :param session_headers: Default headers configured on the session.
+    :param request_headers: Headers supplied for the current request.
+    :param content_type: MIME type to set as ``Content-Type`` when not already provided.
+
+    :returns: A case-insensitively merged dictionary of HTTP headers.
     """
-    merged = {}
+    merged = NocaseDict()
     if session_headers:
         merged.update(session_headers)
     if request_headers:
         merged.update(request_headers)
-    if content_type and 'Content-Type' not in merged:
-        merged['Content-Type'] = content_type
-    return merged
+    if content_type and "content-type" not in merged:
+        merged["content-type"] = content_type
+    return dict(merged)
 
 
 def _prepare_cookies(request_url: str,
