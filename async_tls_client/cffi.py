@@ -92,7 +92,7 @@ async def get_cookies_from_session(session_id: str, url: str) -> dict:
     return cookies_response_object
 
 
-async def add_cookies_to_session(session_id, cookies: list[dict], url: str) -> dict:
+async def add_cookies_to_session(session_id: str, cookies: list[dict], url: str) -> dict:
     add_cookies_to_session_response = await asyncio.to_thread(
         _addCookiesToSession,
         json.dumps({"cookies": cookies, "sessionId": session_id, "url": url}).encode('utf-8')

@@ -362,7 +362,7 @@ class AsyncSession:
         """
         await self.close()
 
-    async def close(self) -> str:
+    async def close(self) -> dict:
         """
         Closes the session and frees allocated Go memory resources.
 
