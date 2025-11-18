@@ -1,6 +1,8 @@
+import asyncio
 import uuid
 from http.cookiejar import CookieJar
 from typing import Dict, List, Optional, Union
+from urllib.parse import urlparse
 
 # python 3.11 < support
 try:
@@ -17,6 +19,7 @@ from async_tls_client.cookies import (
     cookiejar_from_dict, create_cookie_from_dict,
     merge_cookies
 )
+from async_tls_client.exceptions import TLSClientException
 from async_tls_client.response import Response, build_response
 from async_tls_client.session.request_payload_builder import build_payload
 from async_tls_client.types import (
@@ -296,6 +299,8 @@ class AsyncSession:
         self.cookies = cookiejar_from_dict({})
         self.timeout_seconds = 30
         self.certificate_pinning = certificate_pinning
+        self._session_initialized = False
+        self._session_init_lock = asyncio.Lock()
 
         # Advanced Settings
         self.client_identifier = client_identifier
@@ -368,22 +373,74 @@ class AsyncSession:
 
         :return: JSON response string from the destroy session call
         """
-        return await destroy_session(self.session_id)
+        response = await destroy_session(self.session_id)
+        self._session_initialized = False
+        return response
 
-    async def get_cookies(self, url: str) -> Optional[list[dict]]:
-        return (await get_cookies_from_session(self.session_id, url))["cookies"]
+    async def _ensure_session_initialized(self) -> None:
+        """Create the underlying Go session so stateful helpers (cookies) can be used."""
+        if self._session_initialized:
+            return
+
+        async with self._session_init_lock:
+            if self._session_initialized:
+                return
+
+            payload = build_payload(
+                session=self,
+                method="GET",
+                url="",
+                allow_redirects=False,
+                insecure_skip_verify=self.insecure_skip_verify,
+            )
+
+            try:
+                await request(payload)
+            except TLSClientException as exc:
+                # The dummy payload intentionally fails request validation before any network I/O.
+                if "no request url or request method provided" not in str(exc):
+                    raise
+
+            self._session_initialized = True
+
+    async def get_cookies(self, url: str) -> list[dict]:
+        if self.without_cookie_jar:
+            raise RuntimeError("This session was created without a cookie jar; cookies are disabled.")
+
+        if not self._session_initialized:
+            return []
+
+        cookies_response = await get_cookies_from_session(self.session_id, url)
+        return cookies_response.get("cookies") or []
 
     async def add_cookies(self, cookies: Union[dict[str, str], list[dict]], url: str):
-        if isinstance(cookies, dict):
-            cookies = [{"name": name, "value": value} for name, value in cookies.items()]
+        if self.without_cookie_jar:
+            raise RuntimeError("Cannot add cookies when the session was created without a cookie jar.")
 
-        await add_cookies_to_session(self.session_id, cookies, url)
+        await self._ensure_session_initialized()
+
+        parsed_url = urlparse(url)
+        inferred_domain = parsed_url.hostname or (parsed_url.netloc.split(":")[0] if parsed_url.netloc else "")
+
+        if isinstance(cookies, dict):
+            normalized_cookies = [
+                {"name": name, "value": value, "domain": inferred_domain}
+                for name, value in cookies.items()
+            ]
+        else:
+            normalized_cookies = []
+            for cookie in cookies:
+                cookie_copy = cookie.copy()
+                cookie_copy.setdefault("domain", inferred_domain)
+                normalized_cookies.append(cookie_copy)
+
+        await add_cookies_to_session(self.session_id, normalized_cookies, url)
 
     async def execute_request(
-        self,
-        method: str,
-        url: str,
-        **kwargs: Unpack[RequestOptions]
+            self,
+            method: str,
+            url: str,
+            **kwargs: Unpack[RequestOptions]
     ) -> Response:
         params = kwargs.get('params')
         data = kwargs.get('data')
@@ -421,6 +478,7 @@ class AsyncSession:
         )
 
         response_object = await request(payload)
+        self._session_initialized = True
 
         session_cookies = await self.get_cookies(url)
         response_cookies: list[dict] = []
