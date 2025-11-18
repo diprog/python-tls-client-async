@@ -100,7 +100,8 @@ class AsyncSession:
             alps_protocols: Optional[List[str]] = None,
             ech_candidate_payloads: Optional[List[int]] = None,
             ech_candidate_cipher_suites: Optional[List[Dict]] = None,
-            record_size_limit: Optional[int] = None
+            record_size_limit: Optional[int] = None,
+            insecure_skip_verify: Optional[bool] = None,
     ) -> None:
         """
         Initializes the AsyncSession with various HTTP and TLS parameters.
@@ -344,6 +345,7 @@ class AsyncSession:
         self.ech_candidate_payloads = ech_candidate_payloads
         self.ech_candidate_cipher_suites = ech_candidate_cipher_suites
         self.record_size_limit = record_size_limit
+        self.insecure_skip_verify = insecure_skip_verify or False
 
     async def __aenter__(self):
         """
@@ -389,7 +391,7 @@ class AsyncSession:
         cookies = kwargs.get('cookies')
         json_body = kwargs.get('json')
         allow_redirects = kwargs.get('allow_redirects', False)
-        insecure_skip_verify = kwargs.get('insecure_skip_verify', False)
+        insecure_skip_verify = kwargs.get('insecure_skip_verify', self.insecure_skip_verify)
         timeout_seconds = kwargs.get('timeout_seconds')
         timeout_milliseconds = kwargs.get('timeout_milliseconds')
         proxy = kwargs.get('proxy')
