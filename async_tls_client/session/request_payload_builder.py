@@ -261,11 +261,12 @@ def build_payload(
             "keyShareCurves": session.key_share_curves,
             "alpnProtocols": session.alpn_protocols,
             "alpsProtocols": session.alps_protocols,
-            "echCandidatePayloads": session.ech_candidate_payloads,
-            "echCandidateCipherSuites": session.ech_candidate_cipher_suites,
+            "ECHCandidatePayloads": session.ech_candidate_payloads,
+            "ECHCandidateCipherSuites": session.ech_candidate_cipher_suites,
             "recordSizeLimit": session.record_size_limit
         }
         payload["customTlsClient"] = {k: v for k, v in custom_client.items() if v is not None}
+        payload["withRandomTLSExtensionOrder"] = session.random_tls_extension_order
     else:
         payload["tlsClientIdentifier"] = session.client_identifier
         payload["withRandomTLSExtensionOrder"] = session.random_tls_extension_order

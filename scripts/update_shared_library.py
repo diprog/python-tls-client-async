@@ -50,7 +50,7 @@ for asset in assets:
         continue
 
     download_url = asset["browser_download_url"]
-    print(f"[→] Downloading {name} → {target_name}")
+    print(f"[>] Downloading {name} -> {target_name}")
     response = requests.get(download_url, stream=True)
     total = int(response.headers.get("content-length", 0))
 
@@ -61,4 +61,4 @@ for asset in assets:
             f.write(chunk)
             bar.update(len(chunk))
 
-print("[✓] All matched assets downloaded.")
+print("[OK] All matched assets downloaded.")

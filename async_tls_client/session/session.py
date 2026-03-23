@@ -100,6 +100,7 @@ class AsyncSession:
             stream_output_path: Optional[str] = None,
             stream_output_block_size: Optional[int] = None,
             stream_output_eof_symbol: Optional[str] = None,
+            alpn_protocols: Optional[List[str]] = None,
             alps_protocols: Optional[List[str]] = None,
             ech_candidate_payloads: Optional[List[int]] = None,
             ech_candidate_cipher_suites: Optional[List[Dict]] = None,
@@ -346,6 +347,7 @@ class AsyncSession:
         self.stream_output_path = stream_output_path
         self.stream_output_block_size = stream_output_block_size
         self.stream_output_eof_symbol = stream_output_eof_symbol
+        self.alpn_protocols = alpn_protocols
         self.alps_protocols = alps_protocols
         self.ech_candidate_payloads = ech_candidate_payloads
         self.ech_candidate_cipher_suites = ech_candidate_cipher_suites
@@ -403,6 +405,27 @@ class AsyncSession:
 
             self._session_initialized = True
 
+    @staticmethod
+    def _normalize_cookie_domain(domain: Optional[str], fallback: str) -> str:
+        candidate = (domain or "").strip()
+        if not candidate:
+            return fallback
+
+        formatted = candidate
+        if "://" not in formatted and not formatted.startswith("//"):
+            formatted = f"//{formatted}"
+
+        parsed = urlparse(formatted)
+        normalized = parsed.hostname
+
+        if normalized:
+            # Preserve explicit leading dot for wildcard domains
+            if candidate.startswith(".") and not normalized.startswith("."):
+                normalized = f".{normalized}"
+            return normalized
+
+        return fallback
+
     async def get_cookies(self, url: str) -> list[dict]:
         if self.without_cookie_jar:
             raise RuntimeError("This session was created without a cookie jar; cookies are disabled.")
@@ -421,17 +444,25 @@ class AsyncSession:
 
         parsed_url = urlparse(url)
         inferred_domain = parsed_url.hostname or (parsed_url.netloc.split(":")[0] if parsed_url.netloc else "")
+        inferred_domain = inferred_domain or ""
 
         if isinstance(cookies, dict):
             normalized_cookies = [
-                {"name": name, "value": value, "domain": inferred_domain}
+                {
+                    "name": name,
+                    "value": value,
+                    "domain": self._normalize_cookie_domain(None, inferred_domain),
+                }
                 for name, value in cookies.items()
             ]
         else:
             normalized_cookies = []
             for cookie in cookies:
                 cookie_copy = cookie.copy()
-                cookie_copy.setdefault("domain", inferred_domain)
+                cookie_copy["domain"] = self._normalize_cookie_domain(
+                    cookie_copy.get("domain"),
+                    inferred_domain,
+                )
                 normalized_cookies.append(cookie_copy)
 
         await add_cookies_to_session(self.session_id, normalized_cookies, url)
