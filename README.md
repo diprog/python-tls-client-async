@@ -8,12 +8,12 @@ Asyncio-first TLS client for Python with advanced fingerprinting capabilities. M
 of [Python-TLS-Client](https://github.com/FlorianREGAZ/Python-Tls-Client) with enhanced features and active maintenance.
 
 ```python
-from async_tls_client import AsyncClient
+from async_tls_client import AsyncSession
 import asyncio
 
 
 async def main():
-    async with AsyncClient(
+    async with AsyncSession(
             client_identifier="chrome120",
             random_tls_extension_order=True
     ) as client:
@@ -60,12 +60,12 @@ pip install async_tls_client
 ### Basic Usage
 
 ```python
-from async_tls_client import AsyncClient
+from async_tls_client import AsyncSession
 import asyncio
 
 
 async def main():
-    async with AsyncClient("chrome120") as client:
+    async with AsyncSession("chrome120") as client:
         response = await client.get(
             "https://httpbin.org/json",
             headers={"X-API-Key": "secret"},
@@ -82,9 +82,9 @@ asyncio.run(main())
 ### Advanced Configuration
 
 ```python
-from async_tls_client import AsyncClient
+from async_tls_client import AsyncSession
 
-client = AsyncClient(
+client = AsyncSession(
     ja3_string="771,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-13-18-51-45-43-27-17513,29-23-24,0",
     h2_settings={
         "HEADER_TABLE_SIZE": 65536,
@@ -129,7 +129,7 @@ Preconfigured client identifiers (https://github.com/bogdanfinn/tls-client/blob/
 ### Custom Fingerprint Configuration
 
 ```python
-client = AsyncClient(
+client = AsyncSession(
     ja3_string="771,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-13-18-51-45-43-27-17513,29-23-24,0",
     h2_settings_order=["HEADER_TABLE_SIZE", "MAX_CONCURRENT_STREAMS"],
     pseudo_header_order=[":method", ":authority", ":scheme", ":path"],
@@ -142,7 +142,7 @@ client = AsyncClient(
 ### Certificate Pinning
 
 ```python
-client = AsyncClient(
+client = AsyncSession(
     certificate_pinning={
         "api.bank.com": [
             "sha256/7HIpactkIAq2Y49orFOOQKurWxmmSFZhBCoQYcRhJ3Y=",
@@ -170,7 +170,7 @@ The client leverages Python's asyncio through three key strategies:
     - Go TLS client handles remain managed in background executors
 
 2. **Session Management**
-    - `AsyncClient` context manager handles automatic cleanup
+    - `AsyncSession` context manager handles automatic cleanup
     - Connection pooling with automatic keep-alives
     - Cookie persistence across requests
 
